@@ -1,4 +1,5 @@
-﻿using Pipelines.Sockets.Unofficial.Arenas;
+﻿using NLog;
+using Pipelines.Sockets.Unofficial.Arenas;
 using Shared.database;
 using Shared.resources;
 using System;
@@ -46,7 +47,7 @@ namespace WorldServer.core.worlds
         public bool DisableAbilities { get; set; }
         private long Lifetime { get; set; }
 
-        public bool isWeekend { get; set; } = false;
+        public bool isWeekend { get; set; } = true;
 
         public readonly Wmap Map;
         public readonly GameServer GameServer;
@@ -75,6 +76,8 @@ namespace WorldServer.core.worlds
         // Hashset to have non duplicates
         private readonly HashSet<string> Labels = new HashSet<string>();
 
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public World(GameServer gameServer, int id, WorldResource resource, World parent = null)
         {
             GameServer = gameServer;
@@ -94,20 +97,20 @@ namespace WorldServer.core.worlds
             DisableShooting = resource.DisableShooting;
             DisableAbilities = resource.DisableAbilities;
             CreateInstance = resource.CreateInstance;
-
+            Music = "sorc";
             IsRealm = false;
 
             if (resource.Music.Count > 0)
                 Music = resource.Music[Random.Shared.Next(0, resource.Music.Count)];
-            else
-                Music = "sorc";
 
             WorldBranch = new WorldBranch(this);
             ParentWorld = parent;
 
             var day = DateTime.Now.DayOfWeek;
-            if (day != DayOfWeek.Saturday && day != DayOfWeek.Sunday) { }
-            else isWeekend = true;
+            if (day != DayOfWeek.Saturday && day != DayOfWeek.Sunday) 
+                isWeekend = false;
+
+            Log.Info($"Initialized '{DisplayName}'. (ID: {Id})");
         }
 
         public bool HasLabel(string labelName) => Labels.Contains(labelName.ToLower());

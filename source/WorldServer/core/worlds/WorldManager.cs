@@ -46,7 +46,6 @@ namespace WorldServer.core.worlds
             var worldResource = GameServer.Resources.GameData.GetWorld("Nexus");
             if (worldResource == null)
                 return;
-
             var world = Nexus = new NexusWorld(GameServer, -2, worldResource);
             var success = world.LoadMapFromData(worldResource);
             if (!success)
@@ -54,9 +53,7 @@ namespace WorldServer.core.worlds
             world.Init();
             _ = Worlds.TryAdd(world.Id, world);
             lock (Threads)
-            {
                 Threads.Add(world.Id, new RootWorldThread(this, world));
-            }
         }
 
         public void CreateArena()
@@ -64,30 +61,20 @@ namespace WorldServer.core.worlds
             var worldResource = GameServer.Resources.GameData.GetWorld("Arena");
             if (worldResource == null)
                 return;
-
             var world = Arena = new ArenaWorld(GameServer, -3, worldResource);
             var success = world.LoadMapFromData(worldResource);
             if (!success)
                 throw new Exception("Unable to initialize Arena.");
             world.Init();
-            _ = Worlds.TryAdd(world.Id, world);
-            lock (Threads)
-            {
-                Threads.Add(world.Id, new RootWorldThread(this, world));
-            }
+            Worlds[world.Id] = world;
+            Nexus.WorldBranch.AddBranch(world);
         }
 
         public void CreateTest()
         {
-            Console.WriteLine($"Create new test instance.");
-
             var worldResource = GameServer.Resources.GameData.GetWorld("Testing");
             if (worldResource == null)
-            {
-                Console.WriteLine("Testing couldnt be made");
                 return;
-            }
-
             var world = Test = new TestWorld(GameServer, -4, worldResource);
             world.Init();
             Worlds[world.Id] = world;
